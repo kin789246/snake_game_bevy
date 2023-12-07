@@ -6,8 +6,7 @@ use crate::{
     MenuState,
     GameAssets,
     despawn_screen,
-    components::Score,
-    game_plugin::OnGameScreen
+    components::*,
 };
 
 #[derive(Component)]
@@ -17,24 +16,6 @@ enum MenuButtonAction {
     Resume,
     Quit,
 }
-
-#[derive(Component)]
-pub struct OnMainMenuScreen;
-
-#[derive(Component)]
-pub struct OnPauseMenuScreen;
-
-#[derive(Component)]
-pub struct SelectedOption;
-
-#[derive(Component)]
-pub struct OnPlayMenuScreen;
-
-#[derive(Debug, Component)]
-pub struct ToSelectOption;
-
-#[derive(Debug, Component)]
-pub struct MenuItems;
 
 pub struct MenuPlugin;
 
@@ -48,8 +29,6 @@ impl Plugin for MenuPlugin {
             .add_systems(OnEnter(MenuState::Pause), pause_menu_setup)
             .add_systems(OnExit(MenuState::Pause), 
                 despawn_screen::<OnPauseMenuScreen>)
-            //.add_systems(OnEnter(MenuState::Play), play_menu_setup)
-            //.add_systems(OnExit(MenuState::Play), hide_play_menu)
             .add_systems(Update, (
                 menu_action, 
                 button_system,

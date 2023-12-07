@@ -1,6 +1,11 @@
 use bevy::prelude::*;
 //use bevy::window::PresentMode;
 use prelude::*;
+use crate::{
+    components::MainCamera,
+    resources::GameAssets,
+    states::*,
+};
 
 mod game_plugin;
 mod menu_plugin;
@@ -10,6 +15,7 @@ mod events;
 mod components;
 mod resources;
 mod graphics;
+mod states;
 
 mod prelude {
     use bevy::prelude::*;
@@ -33,29 +39,6 @@ mod prelude {
     pub const WINDOW_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH +
         2.0 * WALL_WIDTH + BOARD_OFFSET_Y; 
 }
-
-// Enum that will be used as a global state for the game
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum GameState {
-    #[default]
-    Menu,
-    New,
-    Resume,
-    Play,
-    Over,
-}
-
-// state used for the current menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum MenuState {
-    #[default]
-    Main,
-    Pause,
-    Play,
-}
-
-#[derive(Component)]
-pub struct MainCamera;
 
 pub struct SnakeGame;
 
@@ -93,61 +76,6 @@ impl SnakeGame {
 
 fn env_setup(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
-}
-
-#[derive(Resource, Debug, Component, PartialEq, Eq, Clone)]
-pub struct GameAssets {
-    cjk_font: Handle<Font>,
-    head_up: Handle<Image>,
-    head_down: Handle<Image>,
-    head_left: Handle<Image>,
-    head_right: Handle<Image>,
-    body_bottomleft: Handle<Image>,
-    body_bottomright: Handle<Image>,
-    body_horizontal: Handle<Image>,
-    body_topleft: Handle<Image>,
-    body_topright: Handle<Image>,
-    body_vertical: Handle<Image>,
-    tail_down: Handle<Image>,
-    tail_left: Handle<Image>,
-    tail_right: Handle<Image>,
-    tail_up: Handle<Image>,
-    apple: Handle<Image>,
-}
-
-impl GameAssets {
-    fn load_assets(
-        mut commands: Commands,
-        asset_server: Res<AssetServer>
-) {
-        let cjk_font = asset_server.load("fonts/NotoSansMonoCJKtc-Regular.otf");
-        let head_up = asset_server.load("textures/snake/head_up.png");
-        let head_down = asset_server.load("textures/snake/head_down.png");
-        let head_left = asset_server.load("textures/snake/head_left.png");
-        let head_right = asset_server.load("textures/snake/head_right.png");
-        let body_bottomleft = asset_server.load("textures/snake/body_bottomleft.png");
-        let body_bottomright = asset_server.load("textures/snake/body_bottomright.png");
-        let body_horizontal = asset_server.load("textures/snake/body_horizontal.png");
-        let body_topleft = asset_server.load("textures/snake/body_topleft.png");
-        let body_topright = asset_server.load("textures/snake/body_topright.png");
-        let body_vertical = asset_server.load("textures/snake/body_vertical.png");
-        let tail_down = asset_server.load("textures/snake/tail_down.png");
-        let tail_left = asset_server.load("textures/snake/tail_left.png");
-        let tail_right = asset_server.load("textures/snake/tail_right.png");
-        let tail_up = asset_server.load("textures/snake/tail_up.png");
-        let apple = asset_server.load("textures/snake/apple.png");
-        
-        commands.insert_resource(
-            GameAssets {
-                cjk_font,
-                head_up, head_down, head_left, head_right,
-                body_bottomleft, body_bottomright, body_horizontal,
-                body_topleft, body_topright, body_vertical,
-                tail_down, tail_left, tail_right, tail_up,
-                apple,
-            }
-        );
-    }
 }
 
 // Generic system that takes a component as a parameter,

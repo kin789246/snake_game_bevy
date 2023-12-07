@@ -1,18 +1,10 @@
-use bevy::{
-    prelude::*, 
-    // sprite::collide_aabb::collide,
-};
-
+use bevy::prelude::*;
 use rand::prelude::*;
-// use bevy::sprite::MaterialMesh2dBundle;
-
 use crate::{
     GameAssets,
     GameState,
     despawn_screen,
     resources::SnakeSegments, 
-    game_plugin::OnGameScreen, 
-    menu_plugin::OnPlayMenuScreen,
     components::*, 
     events::*,
     prelude::*,

@@ -1,5 +1,4 @@
 use std::time::Duration;
-
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use crate::{
     control::*,
@@ -11,9 +10,6 @@ use crate::{
     prelude::*,
     menu_plugin::play_menu_setup
 };
-
-#[derive(Component)]
-pub struct OnGameScreen;
 
 #[derive(SystemSet, Hash, PartialEq, Eq, Clone, Debug)]
 pub enum Phase {
