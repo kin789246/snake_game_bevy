@@ -6,7 +6,7 @@ use crate::{
     MenuState,
     GameAssets,
     despawn_screen,
-    components::*,
+    components::*, resources::GameSetting,
 };
 
 #[derive(Component)]
@@ -41,11 +41,12 @@ fn main_menu_setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>
 ) {
     let button_style = Style {
-        width: Val::Px(250.),
-        height: Val::Px(65.),
-        margin: UiRect::all(Val::Px(20.)),
+        width: Val::Px(250. * game_settings.game_scale),
+        height: Val::Px(65. * game_settings.game_scale),
+        margin: UiRect::all(Val::Px(20. * game_settings.game_scale)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
         ..default()
@@ -53,11 +54,11 @@ fn main_menu_setup(
     let button_icon_style = Style {
         width: Val::Px(30.),
         position_type: PositionType::Absolute,
-        left: Val::Px(10.),
+        left: Val::Px(10. * game_settings.game_scale),
         ..default()
     };
     let button_text_style = TextStyle {
-        font_size: 40.0,
+        font_size: 40.0 * game_settings.game_scale,
         color: TEXT_COLOR,
         font: game_assets.cjk_font.clone(),
     };
@@ -92,14 +93,15 @@ fn main_menu_setup(
                         TextBundle::from_section(
                             /*"SNAKE GAME",*/ "貪食蛇",
                             TextStyle {
-                                font_size: 80.0,
+                                font_size: 80.0 * game_settings.game_scale,
                                 color: TEXT_COLOR,
                                 font: game_assets.cjk_font.clone(),
                             },
                         )
                         .with_style(
                             Style { 
-                                margin: UiRect::all(Val::Px(50.)),
+                                margin: UiRect::all(
+                                    Val::Px(50. * game_settings.game_scale)),
                                 ..default()
                             }
                         )
@@ -124,6 +126,8 @@ fn main_menu_setup(
                             ImageBundle {
                                 style: button_icon_style.clone(),
                                 image: UiImage::new(icon),
+                                transform: Transform::from_scale(
+                                    Vec3::splat(game_settings.game_scale)),
                                 ..default()
                             }
                         );
@@ -148,6 +152,8 @@ fn main_menu_setup(
                         parent.spawn(ImageBundle {
                             style: button_icon_style,
                             image: UiImage::new(icon),
+                            transform: Transform::from_scale(
+                                Vec3::splat(game_settings.game_scale)),
                             ..default()
                         });
                         parent.spawn(TextBundle::from_section("離開", button_text_style));
@@ -161,7 +167,8 @@ fn pause_menu_setup(
     asset_server: Res<AssetServer>,
     game_assets: Res<GameAssets>,
     curr_game_state: Res<State<GameState>>,
-    mut menu_state: ResMut<NextState<MenuState>>
+    mut menu_state: ResMut<NextState<MenuState>>,
+    game_settings: Res<GameSetting>
 ) {
     if curr_game_state.get() == &GameState::Over {
         menu_state.set(MenuState::Main);
@@ -169,9 +176,9 @@ fn pause_menu_setup(
     }
 
     let button_style = Style {
-        width: Val::Px(250.),
-        height: Val::Px(65.),
-        margin: UiRect::all(Val::Px(20.)),
+        width: Val::Px(250. * game_settings.game_scale),
+        height: Val::Px(65. * game_settings.game_scale),
+        margin: UiRect::all(Val::Px(20. * game_settings.game_scale)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
         ..default()
@@ -183,7 +190,7 @@ fn pause_menu_setup(
         ..default()
     };
     let button_text_style = TextStyle {
-        font_size: 40.0,
+        font_size: 40.0 * game_settings.game_scale,
         color: TEXT_COLOR,
         font: game_assets.cjk_font.clone(),
     };
@@ -218,14 +225,15 @@ fn pause_menu_setup(
                         TextBundle::from_section(
                             "貪食蛇",
                             TextStyle {
-                                font_size: 80.0,
+                                font_size: 80.0 * game_settings.game_scale,
                                 color: TEXT_COLOR,
                                 font: game_assets.cjk_font.clone(),
                             },
                         )
                         .with_style(
                             Style { 
-                                margin: UiRect::all(Val::Px(50.)),
+                                margin: UiRect::all(
+                                    Val::Px(50. * game_settings.game_scale)),
                                 ..default()
                             }
                         )
@@ -268,6 +276,8 @@ fn pause_menu_setup(
                             ImageBundle {
                                 style: button_icon_style.clone(),
                                 image: UiImage::new(icon),
+                                transform: Transform::from_scale(
+                                    Vec3::splat(game_settings.game_scale)),
                                 ..default()
                             }
                         );
@@ -292,6 +302,8 @@ fn pause_menu_setup(
                         parent.spawn(ImageBundle {
                             style: button_icon_style,
                             image: UiImage::new(icon),
+                            transform: Transform::from_scale(
+                                Vec3::splat(game_settings.game_scale)),
                             ..default()
                         });
                         parent.spawn(TextBundle::from_section(
@@ -305,9 +317,10 @@ fn pause_menu_setup(
 pub fn play_menu_setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>
 ) {
     let button_text_style = TextStyle {
-        font_size: 25.0,
+        font_size: 25.0 * game_settings.game_scale,
         color: TEXT_COLOR,
         font: game_assets.cjk_font.clone(),
     };
@@ -317,7 +330,7 @@ pub fn play_menu_setup(
             style: Style {
                 display: Display::Grid,
                 width: Val::Percent(100.0),
-                height: Val::Px(BOARD_OFFSET_Y),
+                height: Val::Px(BOARD_OFFSET_Y * game_settings.game_scale),
                 grid_template_columns: vec![
                     GridTrack::percent(30.), 
                     GridTrack::percent(30.),
@@ -335,9 +348,9 @@ pub fn play_menu_setup(
             parent.spawn((
                 ButtonBundle {
                     style: Style {
-                        width: Val::Px(50.),
+                        width: Val::Px(50. * game_settings.game_scale),
                         height: Val::Auto,
-                        margin: UiRect::all(Val::Px(5.)),
+                        margin: UiRect::all(Val::Px(5. * game_settings.game_scale)),
                         grid_column: GridPlacement::start(1),
                         justify_content: JustifyContent::Center,
                         ..default()
@@ -364,7 +377,7 @@ pub fn play_menu_setup(
                     grid_column: GridPlacement::start(3),
                     align_self: AlignSelf::Center,
                     justify_self: JustifySelf::End,
-                    margin: UiRect::all(Val::Px(3.)),
+                    margin: UiRect::all(Val::Px(3. * game_settings.game_scale)),
                     ..default()
                 }),
                 Score(0)

@@ -1,11 +1,18 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*, 
+    winit::WinitWindows,
+    window::{PrimaryWindow, WindowResized}
+};
 
 use crate::{
     GameAssets,
-    components::{Position, SnakeSegment, Fruit, SnakeHead}, 
-    resources::SnakeSegments,
+    components::{Position, SnakeSegment, Fruit, SnakeHead, MainCamera}, 
+    resources::{SnakeSegments, GameSetting},
     prelude::*,
 };
+
+#[cfg(target_arch = "wasm32")]
+use bevy::window::WindowCreated;
 
 pub fn snake_transform(
     mut transforms: Query<(&Position, &mut Transform)>,
@@ -13,9 +20,11 @@ pub fn snake_transform(
     mut handles: Query<&mut Handle<Image>, With<SnakeSegment>>,
     segments: ResMut<SnakeSegments>,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>
 ) {
     for (pos, mut transform) in transforms.iter_mut() {
-        transform.translation = to_game_xyz(pos.0.x, pos.0.y, 1);
+        transform.translation = to_game_xyz(pos.0.x, pos.0.y, 1,
+            game_settings.snake_width);
     }
     // head direction
     let head = heads.single();
@@ -73,20 +82,100 @@ pub fn snake_transform(
 
 pub fn fruit_transform(
     mut transforms: Query<(&Position, &mut Transform), With<Fruit>>,
+    game_settings: Res<GameSetting>
 ) {
     for (fruit_pos, mut fruit_trans) in transforms.iter_mut() {
         fruit_trans.translation = to_game_xyz(
             fruit_pos.0.x, 
             fruit_pos.0.y,
-            1
+            1,
+            game_settings.snake_width
         );
     }
 }
 
-pub fn to_game_xyz(x: i32, y: i32, z: i32) -> Vec3 {
+pub fn to_game_xyz(x: i32, y: i32, z: i32, snake_width: f32) -> Vec3 {
     Vec3::new(
-        x as f32 * SNAKE_WIDTH,
-        y as f32 * SNAKE_WIDTH - BOARD_OFFSET_Y/2.,
+        x as f32 * snake_width,
+        y as f32 * snake_width - BOARD_OFFSET_Y/2.,
         z as f32
     )
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn setup_ui(
+    mut window_q: Query<(Entity, &mut Window), With<PrimaryWindow>>,
+    mut game_settings: ResMut<GameSetting>,
+    mut window_created_evr: EventReader<WindowCreated>
+    // winit_window: NonSend<WinitWindows>, 
+) {
+    for _event in window_created_evr.read() {
+        info!("window created");
+        let (_primary_window, mut window) = window_q.single_mut();
+        let wasm_window = web_sys::window().unwrap();
+        // info!("\ncanvas width:{:?}, height:{:?}",
+        //     wasm_window.inner_width(), wasm_window.inner_height());
+        let game_width = (BOARD_COLS as f32 * game_settings.snake_width +
+            2. * WALL_WIDTH) as f64;
+        let game_height = (BOARD_ROWS as f32 * game_settings.snake_width +
+            2. * WALL_WIDTH + BOARD_OFFSET_Y) as f64;
+        let width = wasm_window.inner_width().unwrap().as_f64().unwrap();
+        let height = wasm_window.inner_height().unwrap().as_f64().unwrap();
+        if width >= height {
+            if height * 0.8 < game_height {
+                let scale = (height * 0.8 / game_height) as f32;
+                game_settings.game_scale = scale;
+                game_settings.snake_width *= scale;
+            }
+        }
+        else {
+            if width < game_width {
+                let scale = (width / game_width) as f32;
+                game_settings.game_scale = scale;
+                game_settings.snake_width *= scale;
+            }
+        }
+        let win_width = BOARD_COLS as f32 * game_settings.snake_width +
+            2. * WALL_WIDTH + 2. * WIN_PADDING;
+        let win_height = BOARD_ROWS as f32 * game_settings.snake_width +
+            2. * WALL_WIDTH + BOARD_OFFSET_Y + 2. * WIN_PADDING;
+        (*window).resolution.set(win_width, win_height);
+    }
+    //info!("\nw={:?}, h={:?}", win_width, win_height);
+    // let winit = winit_window.get_window(primary_window).unwrap();
+    //let monitor = winit.current_monitor().unwrap();
+    // let is = winit.inner_size();
+    // let sf = winit.scale_factor();
+    // let width = is.width as f64 / sf;
+    // let height = is.height as f64 / sf;
+    
+    // info!("\ninner_size={:?}\nscale_factor={:?}", is, sf);
+    // info!("\nwidth={:?}, height={:?}", width, height);
+    // info!("\nwindow_resolution={:?}", window.resolution);
+    // calculate new settings
+}
+
+pub fn _on_size_changed(
+    winit_window: NonSend<WinitWindows>, 
+    mut window_q: Query<Entity, With<PrimaryWindow>>,
+    mut sizechanged_evr: EventReader<WindowResized>,
+    camera_q: Query<&Camera, With<MainCamera>>
+) {
+    if let Ok(camera) = camera_q.get_single() {
+        info!("\ncamera={:?}", camera);
+    }
+
+    for resized in sizechanged_evr.read() {
+        info!("\nresized");
+        let primary_window = window_q.single_mut();
+        let winit = winit_window.get_window(primary_window).unwrap();
+        let is = winit.inner_size();
+        let sf = winit.scale_factor();
+        let width = is.width as f64 / sf;
+        let height = is.height as f64 / sf;
+        
+        info!("\nwin_resized: width={:?}, height={:?}", resized.width, resized.height);
+        info!("\ninner_size={:?}\nscale_factor={:?}", is, sf);
+        info!("\nwidth={:?}, height={:?}", width, height);
+    }
 }

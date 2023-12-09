@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 //use bevy::window::PresentMode;
-use prelude::*;
-use crate::{
-    components::MainCamera,
-    resources::GameAssets,
-    states::*,
+use resources::{
+    GameSetting, 
+    GameAssets
 };
+use components::MainCamera;
+use states::*;
 
 mod game_plugin;
 mod menu_plugin;
@@ -19,25 +19,26 @@ mod states;
 
 mod prelude {
     use bevy::prelude::*;
-    pub const GAME_FPS: u64 = (1000.0 / 60.0 * SNAKE_WIDTH / 3.) as u64;
+    pub const GAME_FPS: u64 = (1000. / 60. * 40. / 3.) as u64;
     pub const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
     pub const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
     pub const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
     pub const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
     pub const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-    pub const SNAKE_WIDTH: f32 = 40.0;
+    // pub const SNAKE_WIDTH: f32 = 40.0;
     pub const WALL_WIDTH: f32 = 10.;
     pub const WALL_COLOR: Color = Color::LIME_GREEN;
     pub const BOARD_ROWS: u32 = 15;
-    pub const BOARD_COLS: u32 = 15;
+    pub const BOARD_COLS: u32 = 9;
     pub const BOARD_OFFSET_Y: f32 = 40.0;
-    pub const BOARD_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH;
-    pub const BOARD_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH;
-    pub const _WIN_PADDING: f32 = 10.;
-    pub const WINDOW_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH +
-        2.0 * WALL_WIDTH;
-    pub const WINDOW_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH +
-        2.0 * WALL_WIDTH + BOARD_OFFSET_Y; 
+    // pub const BOARD_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH;
+    // pub const BOARD_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH;
+    // pub const WINDOW_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH +
+    //     2.0 * WALL_WIDTH;
+    // pub const WINDOW_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH +
+    //     2.0 * WALL_WIDTH + BOARD_OFFSET_Y; 
+    #[cfg(target_arch = "wasm32")]
+    pub const WIN_PADDING: f32 = 10.;
 }
 
 pub struct SnakeGame;
@@ -51,9 +52,11 @@ impl SnakeGame {
                     primary_window: Some(
                             Window { 
                                 resolution: (
-                                    WINDOW_WIDTH, WINDOW_HEIGHT
+                                    9. * 40. + 2. * 10.,
+                                    15. * 40. + 2. * 10. + 40.
                                 ).into(), 
                                 title: "貪食蛇".to_string(), 
+                                fit_canvas_to_parent: true,
                                 ..default()
                             }
                     ),
@@ -61,7 +64,16 @@ impl SnakeGame {
                 })
             )
             .add_state::<GameState>()
-            .add_systems(Startup, (env_setup, GameAssets::load_assets))
+            .insert_resource(GameSetting::default())
+            .add_systems(Startup, 
+                (
+                    env_setup, 
+                    GameAssets::load_assets, 
+                    #[cfg(target_arch = "wasm32")]
+                    graphics::setup_ui
+                ).chain()
+            )
+            //.add_systems(Update, graphics::on_size_changed)
             //.add_systems(Update, toggle_vsync)
             .add_plugins((menu_plugin::MenuPlugin, game_plugin::GamePlugin));
 

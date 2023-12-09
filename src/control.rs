@@ -4,7 +4,7 @@ use crate::{
     GameAssets,
     GameState,
     despawn_screen,
-    resources::SnakeSegments, 
+    resources::{SnakeSegments, GameSetting}, 
     components::*, 
     events::*,
     prelude::*,
@@ -25,37 +25,42 @@ pub fn init_snake(
     mut commands: Commands,
     mut segments: ResMut<SnakeSegments>,
     game_assets: Res<GameAssets>,
-    // meshes: ResMut<Assets<Mesh>>,
-    // materials: ResMut<Assets<ColorMaterial>>,
+    game_settings: Res<GameSetting>
 ) {
-    spawn_snake(&mut commands, &mut segments, &game_assets/*, meshes, materials*/);
+    spawn_snake(&mut commands, &mut segments, &game_assets, &game_settings);
 }
 
 pub fn init_wall(
     mut commands: Commands,
+    game_settings: Res<GameSetting>
 ) {
-    draw_wall(&mut commands);
+    draw_wall(&mut commands, &game_settings);
 }
 
 pub fn init_fruit(
     mut commands: Commands,
     positions: Query<&Position, With<SnakeSegment>>,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>
 ) {
-    spawn_fruit(&mut commands, positions, &game_assets);
+    spawn_fruit(&mut commands, positions, &game_assets, &game_settings);
 }
 
 pub fn spawn_fruit(
     commands: &mut Commands,
     positions: Query<&Position, With<SnakeSegment>>,
     game_assets: &Res<GameAssets>,
+    game_settings: &Res<GameSetting>
 ) {
     let translation = generate_position(positions);
     commands.spawn((
         SpriteBundle {
             texture: game_assets.apple.clone(),
             transform: Transform::from_translation(
-                to_game_xyz(translation.x, translation.y, 1)),
+                to_game_xyz(translation.x, translation.y, 1,
+                    game_settings.snake_width)
+                )
+                .with_scale(Vec3::splat(game_settings.game_scale)),
             ..default()
         },
         OnGameScreen,
@@ -91,16 +96,23 @@ fn generate_position(
 
 pub fn draw_wall(
     commands: &mut Commands,
+    game_settings: &Res<GameSetting>
 ) {
+    let window_width = BOARD_COLS as f32 * game_settings.snake_width +
+        2. * WALL_WIDTH;
+    let window_height = BOARD_ROWS as f32 * game_settings.snake_width +
+        2. * WALL_WIDTH + BOARD_OFFSET_Y;
+    let board_width = BOARD_COLS as f32 * game_settings.snake_width;
+    let board_height = BOARD_ROWS as f32 * game_settings.snake_width;
     // top wall
     commands.spawn((SpriteBundle {
             sprite: Sprite {
                 color: WALL_COLOR,
-                custom_size: Some(Vec2::new(WINDOW_WIDTH, WALL_WIDTH)),
+                custom_size: Some(Vec2::new(window_width, WALL_WIDTH)),
                 ..default()
             },
             transform: Transform::from_translation(
-                Vec3::new(0., WINDOW_HEIGHT/2. - WALL_WIDTH/2. - BOARD_OFFSET_Y, 1.)),
+                Vec3::new(0., window_height/2. - WALL_WIDTH/2. - BOARD_OFFSET_Y, 1.)),
             ..default()
         },
         OnGameScreen,
@@ -109,11 +121,11 @@ pub fn draw_wall(
     commands.spawn((SpriteBundle {
             sprite: Sprite {
                 color: WALL_COLOR,
-                custom_size: Some(Vec2::new(WINDOW_WIDTH, WALL_WIDTH)),
+                custom_size: Some(Vec2::new(window_width, WALL_WIDTH)),
                 ..default()
             },
             transform: Transform::from_translation(
-                Vec3::new(0., -WINDOW_HEIGHT/2. + WALL_WIDTH/2., 1.)),
+                Vec3::new(0., -window_height/2. + WALL_WIDTH/2., 1.)),
             ..default()
         },
         OnGameScreen,
@@ -122,12 +134,12 @@ pub fn draw_wall(
     commands.spawn((SpriteBundle {
             sprite: Sprite {
                 color: WALL_COLOR,
-                custom_size: Some(Vec2::new(WALL_WIDTH, BOARD_HEIGHT)),
+                custom_size: Some(Vec2::new(WALL_WIDTH, board_height)),
                 ..default()
             },
             transform: Transform::from_translation(
                 Vec3::new(
-                    (-WINDOW_WIDTH + WALL_WIDTH)/2., 
+                    (-window_width + WALL_WIDTH)/2., 
                     -BOARD_OFFSET_Y/2.,
                     1.
                 )
@@ -140,12 +152,12 @@ pub fn draw_wall(
     commands.spawn((SpriteBundle {
             sprite: Sprite {
                 color: WALL_COLOR,
-                custom_size: Some(Vec2::new(WALL_WIDTH, BOARD_HEIGHT)),
+                custom_size: Some(Vec2::new(WALL_WIDTH, board_height)),
                 ..default()
             },
             transform: Transform::from_translation(
                 Vec3::new(
-                    (WINDOW_WIDTH - WALL_WIDTH)/2., 
+                    (window_width - WALL_WIDTH)/2., 
                     -BOARD_OFFSET_Y/2.,
                     1.
                 )
@@ -163,13 +175,13 @@ pub fn draw_wall(
         commands.spawn((SpriteBundle {
             sprite: Sprite {
                 color: line_color,
-                custom_size: Some(Vec2::new(BOARD_WIDTH, 2.)),
+                custom_size: Some(Vec2::new(board_width, 2.)),
                 ..default()
             },
             transform: Transform::from_translation(
                 Vec3::new(
                     0., 
-                    -BOARD_OFFSET_Y/2. + SNAKE_WIDTH * (-0.5 + y as f32),
+                    -BOARD_OFFSET_Y/2. + game_settings.snake_width * (-0.5 + y as f32),
                     0.
                 )),
                 ..default()
@@ -180,12 +192,12 @@ pub fn draw_wall(
             commands.spawn((SpriteBundle {
                 sprite: Sprite {
                     color: line_color,
-                    custom_size: Some(Vec2::new(2., BOARD_HEIGHT)),
+                    custom_size: Some(Vec2::new(2., board_height)),
                     ..default()
                 },
                 transform: Transform::from_translation(
                     Vec3::new(
-                        SNAKE_WIDTH * (-0.5 + x as f32),
+                        game_settings.snake_width * (-0.5 + x as f32),
                         -BOARD_OFFSET_Y/2.,
                         0.
                     )),
@@ -201,12 +213,16 @@ fn spawn_snake(
     commands: &mut Commands,
     segments: &mut ResMut<SnakeSegments>,
     game_assets: &Res<GameAssets>,
+    game_settings: &Res<GameSetting>
 ) {
     segments.0 = vec![
         commands.spawn((
             SpriteBundle {
                 texture: game_assets.head_right.clone(),
-                transform: Transform::from_translation(to_game_xyz(1, 0, 1)),
+                transform: Transform::from_translation(
+                    to_game_xyz(1, 0, 1, game_settings.snake_width)
+                )
+                .with_scale(Vec3::splat(game_settings.game_scale)),
                 ..default()
             },
             OnGameScreen,
@@ -217,7 +233,10 @@ fn spawn_snake(
         commands.spawn((
             SpriteBundle {
                 texture: game_assets.body_horizontal.clone(),
-                transform: Transform::from_translation(to_game_xyz(0, 0, 1)),
+                transform: Transform::from_translation(
+                    to_game_xyz(0, 0, 1, game_settings.snake_width)
+                )
+                .with_scale(Vec3::splat(game_settings.game_scale)),
                 ..default()
             },
             OnGameScreen,
@@ -228,7 +247,10 @@ fn spawn_snake(
         commands.spawn((
             SpriteBundle {
                 texture: game_assets.tail_left.clone(),
-                transform: Transform::from_translation(to_game_xyz(-1, 0, 1)),
+                transform: Transform::from_translation(
+                    to_game_xyz(-1, 0, 1, game_settings.snake_width)
+                )
+                .with_scale(Vec3::splat(game_settings.game_scale)),
                 ..default()
             },
             OnGameScreen,
@@ -321,8 +343,9 @@ pub fn random_fruit(
     mut commands: Commands,
     positions: Query<&Position, With<SnakeSegment>>,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>
 ) {
-    spawn_fruit(&mut commands, positions, &game_assets);
+    spawn_fruit(&mut commands, positions, &game_assets, &game_settings);
 }
 
 pub fn growth(
@@ -331,6 +354,7 @@ pub fn growth(
     mut handle_q: Query<&mut Handle<Image>>,
     mut segments: ResMut<SnakeSegments>,
     game_assets: Res<GameAssets>,
+    game_settings: Res<GameSetting>,
 ) {
     // change tail to body
     let tail_id = segments.0.last().unwrap();
@@ -366,7 +390,10 @@ pub fn growth(
                 commands.spawn((
                         SpriteBundle {
                             texture,
-                            transform: Transform::from_translation(to_game_xyz(nx, ny, nz)),
+                            transform: Transform::from_translation(
+                                to_game_xyz(nx, ny, nz, game_settings.snake_width)
+                            )
+                            .with_scale(Vec3::splat(game_settings.game_scale)),
                             ..default()
                         },
                         OnGameScreen,

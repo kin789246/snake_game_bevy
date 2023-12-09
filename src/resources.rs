@@ -6,7 +6,7 @@ pub struct HighScore(pub u16);
 #[derive(Default, Resource)]
 pub struct SnakeSegments(pub Vec<Entity>);
 
-#[derive(Resource, Debug, Component, PartialEq, Eq, Clone)]
+#[derive(Resource, Debug, PartialEq, Eq, Clone)]
 pub struct GameAssets {
     pub cjk_font: Handle<Font>,
     pub head_up: Handle<Image>,
@@ -58,5 +58,20 @@ impl GameAssets {
                 apple,
             }
         );
+    }
+}
+
+#[derive(Resource, PartialEq, Clone)]
+pub struct GameSetting {
+    pub game_scale: f32,
+    pub snake_width: f32
+}
+
+impl Default for GameSetting {
+    fn default() -> Self {
+        Self { 
+            game_scale: 1.,
+            snake_width: 40.
+        }
     }
 }
