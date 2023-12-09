@@ -121,9 +121,11 @@ pub fn setup_ui(
             2. * WALL_WIDTH + BOARD_OFFSET_Y) as f64;
         let width = wasm_window.inner_width().unwrap().as_f64().unwrap();
         let height = wasm_window.inner_height().unwrap().as_f64().unwrap();
+        info!("portrait mode and w={:?} gw={:?}", width, game_width);
+        info!("h={:?} gh={:?}", height, game_height);
         if width >= height {
-            if height * 0.8 < game_height {
-                let scale = (height * 0.8 / game_height) as f32;
+            if height * 0.90 < game_height {
+                let scale = (height * 0.90 / game_height) as f32;
                 game_settings.game_scale = scale;
                 game_settings.snake_width *= scale;
             }
@@ -134,11 +136,16 @@ pub fn setup_ui(
                 game_settings.game_scale = scale;
                 game_settings.snake_width *= scale;
             }
+            else if height * 0.85 < game_height {
+                let scale = (height * 0.85 / game_height) as f32;
+                game_settings.game_scale = scale;
+                game_settings.snake_width *= scale;
+            }
         }
         let win_width = BOARD_COLS as f32 * game_settings.snake_width +
-            2. * WALL_WIDTH + 2. * WIN_PADDING;
+            2. * WALL_WIDTH;
         let win_height = BOARD_ROWS as f32 * game_settings.snake_width +
-            2. * WALL_WIDTH + BOARD_OFFSET_Y + 2. * WIN_PADDING;
+            2. * WALL_WIDTH + BOARD_OFFSET_Y;
         (*window).resolution.set(win_width, win_height);
     }
     //info!("\nw={:?}, h={:?}", win_width, win_height);

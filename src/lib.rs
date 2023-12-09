@@ -25,20 +25,11 @@ mod prelude {
     pub const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
     pub const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
     pub const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-    // pub const SNAKE_WIDTH: f32 = 40.0;
     pub const WALL_WIDTH: f32 = 10.;
     pub const WALL_COLOR: Color = Color::LIME_GREEN;
     pub const BOARD_ROWS: u32 = 15;
     pub const BOARD_COLS: u32 = 9;
     pub const BOARD_OFFSET_Y: f32 = 40.0;
-    // pub const BOARD_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH;
-    // pub const BOARD_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH;
-    // pub const WINDOW_WIDTH: f32 = BOARD_COLS as f32 * SNAKE_WIDTH +
-    //     2.0 * WALL_WIDTH;
-    // pub const WINDOW_HEIGHT: f32 = BOARD_ROWS as f32 * SNAKE_WIDTH +
-    //     2.0 * WALL_WIDTH + BOARD_OFFSET_Y; 
-    #[cfg(target_arch = "wasm32")]
-    pub const WIN_PADDING: f32 = 10.;
 }
 
 pub struct SnakeGame;
