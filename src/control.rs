@@ -15,8 +15,15 @@ pub fn new_game(
     commands: Commands,
     query: Query<Entity, With<OnGameScreen>>,
     mut game_state: ResMut<NextState<GameState>>,
+    // mut touch_evr: EventReader<TouchInput>,
+    // mut touch_start: ResMut<TouchPosition>
 ) {
     info!("new game");
+    // for touch_input in touch_evr.read() {
+    //     if touch_input.phase == TouchPhase::Started {
+    //         touch_start.0 = touch_input.position;
+    //     }
+    // }
     despawn_screen(query, commands);
     game_state.set(GameState::Play);
 }

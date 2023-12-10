@@ -110,7 +110,7 @@ pub fn setup_ui(
     // winit_window: NonSend<WinitWindows>, 
 ) {
     for _event in window_created_evr.read() {
-        info!("window created");
+        // info!("window created");
         let (_primary_window, mut window) = window_q.single_mut();
         let wasm_window = web_sys::window().unwrap();
         // info!("\ncanvas width:{:?}, height:{:?}",
@@ -121,8 +121,8 @@ pub fn setup_ui(
             2. * WALL_WIDTH + BOARD_OFFSET_Y) as f64;
         let width = wasm_window.inner_width().unwrap().as_f64().unwrap();
         let height = wasm_window.inner_height().unwrap().as_f64().unwrap();
-        info!("portrait mode and w={:?} gw={:?}", width, game_width);
-        info!("h={:?} gh={:?}", height, game_height);
+        // info!("portrait mode and w={:?} gw={:?}", width, game_width);
+        // info!("h={:?} gh={:?}", height, game_height);
         if width >= height {
             if height * 0.90 < game_height {
                 let scale = (height * 0.90 / game_height) as f32;

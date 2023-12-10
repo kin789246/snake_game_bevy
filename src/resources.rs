@@ -6,6 +6,9 @@ pub struct HighScore(pub u16);
 #[derive(Default, Resource)]
 pub struct SnakeSegments(pub Vec<Entity>);
 
+#[derive(Resource)]
+pub struct TouchPosition(pub Vec2);
+
 #[derive(Resource, Debug, PartialEq, Eq, Clone)]
 pub struct GameAssets {
     pub cjk_font: Handle<Font>,

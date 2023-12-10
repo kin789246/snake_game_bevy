@@ -38,6 +38,8 @@ impl Plugin for GamePlugin {
                     .run_if(not(in_state(GameState::Menu))),
                 (
                     keyboard.in_set(Phase::Input),
+                    // touch_events.in_set(Phase::Input),
+                    touch_input.in_set(Phase::Input),
                     (
                         move_snake.after(Phase::Input),
                         eat,
@@ -58,6 +60,7 @@ impl Plugin for GamePlugin {
             .add_event::<GrowthEvent>()
             .add_event::<CollisionEvent>()
             .add_event::<ScoreChangedEvent>()
+            //.insert_resource(TouchPosition(Vec2::default()))
             .insert_resource(SnakeSegments::default());
     }
 }
